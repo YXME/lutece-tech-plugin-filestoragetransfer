@@ -34,152 +34,98 @@
 
 package fr.paris.lutece.plugins.filestoragetransfer.web;
 
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockServletConfig;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferError;
 import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferErrorHome;
-import fr.paris.lutece.plugins.filestoragetransfer.web.FileStorageTransferErrorJspBean;
+import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferRequest;
+import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferRequestHome;
+import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferRequestStatus;
 import fr.paris.lutece.portal.business.user.AdminUser;
-import fr.paris.lutece.portal.service.admin.AccessDeniedException;
-import fr.paris.lutece.portal.service.admin.AdminAuthenticationService;
-import fr.paris.lutece.portal.service.security.UserNotSignedException;
-import java.util.List;
-import java.io.IOException;
+import fr.paris.lutece.portal.web.cdi.mvc.ModelsImpl;
+import fr.paris.lutece.test.AdminUserUtils;
 import fr.paris.lutece.test.LuteceTestCase;
-import fr.paris.lutece.portal.service.security.SecurityTokenService;
-import fr.paris.lutece.portal.web.LocalVariables;
+import fr.paris.lutece.test.mocks.MockHttpServletRequest;
+import fr.paris.lutece.test.mocks.MockHttpServletResponse;
+import jakarta.inject.Inject;
 
 /**
- * This is the business class test for the object Error
+ * Test of the error JspBean
  */
 public class FileTransferErrorJspBeanTest extends LuteceTestCase
 {
-    private static final int IDREQUEST1 = 1;
-    private static final int IDREQUEST2 = 2;
     private static final String ERRORMESSAGE1 = "ErrorMessage1";
-    private static final String ERRORMESSAGE2 = "ErrorMessage2";
 
-    public void testJspBeans( ) throws AccessDeniedException, IOException
+    @Inject
+    private FileStorageTransferErrorJspBean _bean;
+
+    private FileStorageTransferRequest _fileTransferRequest;
+    private FileStorageTransferError _error;
+
+    /**
+     * Creates a request in error to work on
+     *
+     * @throws Exception
+     *             if the parent setup fails
+     */
+    @BeforeEach
+    @Override
+    protected void setUp( ) throws Exception
+    {
+        super.setUp( );
+
+        _fileTransferRequest = new FileStorageTransferRequest( );
+        _fileTransferRequest.setSourceFileKey( "SourceFileKey1" );
+        _fileTransferRequest.setSourceFileserviceproviderName( "SourceFileserviceproviderName1" );
+        _fileTransferRequest.setTargetFileserviceproviderName( "TargetFileserviceproviderName1" );
+        _fileTransferRequest.setRequestStatus( FileStorageTransferRequestStatus.STATUS_ERROR );
+        _fileTransferRequest.setExecutionTime( Timestamp.from( Instant.now( ) ) );
+        _fileTransferRequest.setCreationTime( Timestamp.from( Instant.now( ) ) );
+        FileStorageTransferRequestHome.create( _fileTransferRequest );
+
+        _error = new FileStorageTransferError( _fileTransferRequest.getId( ), 404, ERRORMESSAGE1, "trace", Timestamp.from( Instant.now( ) ) );
+        FileStorageTransferErrorHome.create( _error );
+    }
+
+    /**
+     * Removes the request and the error worked on
+     *
+     * @throws Exception
+     *             if the parent tear down fails
+     */
+    @AfterEach
+    @Override
+    protected void tearDown( ) throws Exception
+    {
+        FileStorageTransferErrorHome.remove( _error.getId( ) );
+        FileStorageTransferRequestHome.remove( _fileTransferRequest.getId( ) );
+
+        super.tearDown( );
+    }
+
+    /**
+     * Test of the views of the bean
+     *
+     * @throws Exception
+     *             if the controller fails
+     */
+    @Test
+    public void testViews( ) throws Exception
     {
         MockHttpServletRequest request = new MockHttpServletRequest( );
-        MockHttpServletResponse response = new MockHttpServletResponse( );
-        MockServletConfig config = new MockServletConfig( );
+        AdminUserUtils.registerAdminUserWithRight( request, new AdminUser( ), FileStorageTransferErrorJspBean.RIGHT_MANAGETRANSFERERROR );
+        _bean.processController( request, new MockHttpServletResponse( ) );
 
-        // display admin Error management JSP
-        FileStorageTransferErrorJspBean jspbean = new FileStorageTransferErrorJspBean( );
-        String html = jspbean.getManageErrors( request );
-        assertNotNull( html );
+        assertNotNull( _bean.getManageErrors( request, new ModelsImpl( ) ) );
 
-        // display admin Error creation JSP
-        assertNotNull( html );
-
-        // action create Error
-        request = new MockHttpServletRequest( );
-
-        response = new MockHttpServletResponse( );
-        AdminUser adminUser = new AdminUser( );
-        adminUser.setAccessCode( "admin" );
-
-        request.addParameter( "id_request", String.valueOf( IDREQUEST1 ) );
-        request.addParameter( "error_message", ERRORMESSAGE1 );
-        request.addParameter( "action", "createError" );
-        request.addParameter( "token", SecurityTokenService.getInstance( ).getToken( request, "createError" ) );
-        request.setMethod( "POST" );
-
-        try
-        {
-            AdminAuthenticationService.getInstance( ).registerUser( request, adminUser );
-            html = jspbean.processController( request, response );
-
-            // MockResponse object does not redirect, result is always null
-            assertNull( html );
-        }
-        catch( AccessDeniedException e )
-        {
-            fail( "access denied" );
-        }
-        catch( UserNotSignedException e )
-        {
-            fail( "user not signed in" );
-        }
-
-        // display modify Error JSP
-        request = new MockHttpServletRequest( );
-        request.addParameter( "id_request", String.valueOf( IDREQUEST1 ) );
-        request.addParameter( "error_message", ERRORMESSAGE1 );
-        List<Integer> listIds = FileStorageTransferErrorHome.getIdErrorsList( );
-        assertTrue( !listIds.isEmpty( ) );
-        request.addParameter( "id", String.valueOf( listIds.get( 0 ) ) );
-        jspbean = new FileStorageTransferErrorJspBean( );
-
-        // action modify Error
-        request = new MockHttpServletRequest( );
-        response = new MockHttpServletResponse( );
-
-        adminUser = new AdminUser( );
-        adminUser.setAccessCode( "admin" );
-
-        request.addParameter( "id_request", String.valueOf( IDREQUEST2 ) );
-        request.addParameter( "error_message", ERRORMESSAGE2 );
-        request.setRequestURI( "jsp/admin/plugins/example/ManageErrors.jsp" );
-        // important pour que MVCController sache quelle action effectuer, sinon, il redirigera vers createError, qui est l'action par défaut
-        request.addParameter( "action", "modifyError" );
-        request.addParameter( "token", SecurityTokenService.getInstance( ).getToken( request, "modifyError" ) );
-
-        try
-        {
-            AdminAuthenticationService.getInstance( ).registerUser( request, adminUser );
-            html = jspbean.processController( request, response );
-
-            // MockResponse object does not redirect, result is always null
-            assertNull( html );
-        }
-        catch( AccessDeniedException e )
-        {
-            fail( "access denied" );
-        }
-        catch( UserNotSignedException e )
-        {
-            fail( "user not signed in" );
-        }
-
-        // get remove Error
-        request = new MockHttpServletRequest( );
-        // request.setRequestURI("jsp/admin/plugins/example/ManageErrors.jsp");
-        request.addParameter( "id", String.valueOf( listIds.get( 0 ) ) );
-        jspbean = new FileStorageTransferErrorJspBean( );
-        request.addParameter( "action", "confirmRemoveError" );
-
-        // do remove Error
-        request = new MockHttpServletRequest( );
-        response = new MockHttpServletResponse( );
-        request.setRequestURI( "jsp/admin/plugins/example/ManageErrorts.jsp" );
-        // important pour que MVCController sache quelle action effectuer, sinon, il redirigera vers createError, qui est l'action par défaut
-        request.addParameter( "action", "removeError" );
-        request.addParameter( "token", SecurityTokenService.getInstance( ).getToken( request, "removeError" ) );
-        request.addParameter( "id", String.valueOf( listIds.get( 0 ) ) );
-        request.setMethod( "POST" );
-        adminUser = new AdminUser( );
-        adminUser.setAccessCode( "admin" );
-
-        try
-        {
-            AdminAuthenticationService.getInstance( ).registerUser( request, adminUser );
-            html = jspbean.processController( request, response );
-
-            // MockResponse object does not redirect, result is always null
-            assertNull( html );
-        }
-        catch( AccessDeniedException e )
-        {
-            fail( "access denied" );
-        }
-        catch( UserNotSignedException e )
-        {
-            fail( "user not signed in" );
-        }
-
+        request.addParameter( "id", String.valueOf( _error.getId( ) ) );
+        assertNotNull( _bean.getError( request, new ModelsImpl( ) ) );
     }
 }

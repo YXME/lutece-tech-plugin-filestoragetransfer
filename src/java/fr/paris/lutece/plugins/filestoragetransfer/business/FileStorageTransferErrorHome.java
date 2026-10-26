@@ -36,7 +36,7 @@ package fr.paris.lutece.plugins.filestoragetransfer.business;
 
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.portal.service.plugin.PluginService;
-import fr.paris.lutece.portal.service.spring.SpringContextService;
+import jakarta.enterprise.inject.spi.CDI;
 import fr.paris.lutece.util.ReferenceList;
 
 import java.util.List;
@@ -48,7 +48,7 @@ import java.util.Optional;
 public final class FileStorageTransferErrorHome
 {
     // Static variable pointed at the DAO instance
-    private static IFileStorageTransferErrorDAO _dao = SpringContextService.getBean( "filestoragetransfer.errorDAO" );
+    private static IFileStorageTransferErrorDAO _dao = CDI.current( ).select( IFileStorageTransferErrorDAO.class ).get( );
     private static Plugin _plugin = PluginService.getPlugin( "filestoragetransfer" );
 
     /**

@@ -38,6 +38,7 @@ import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferR
 import fr.paris.lutece.plugins.filestoragetransfer.service.FileStorageTransferService;
 import fr.paris.lutece.portal.service.daemon.Daemon;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
+import jakarta.enterprise.inject.spi.CDI;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -46,7 +47,9 @@ import java.util.List;
 public class FileStorageTransferDaemon extends Daemon
 {
 
-    private static int _nBatchSize;
+    private final int _nBatchSize;
+
+    private final FileStorageTransferService _fileStorageTransferService = CDI.current( ).select( FileStorageTransferService.class ).get( );
 
     public FileStorageTransferDaemon( )
     {
@@ -62,7 +65,7 @@ public class FileStorageTransferDaemon extends Daemon
         listRequest.forEach( request -> {
             try
             {
-                FileStorageTransferService.TransferFileToTargetFileService( request );
+                _fileStorageTransferService.TransferFileToTargetFileService( request );
                 this.appendLastRunLogs( "Request " + request.getId( ) + ": DONE.\n" );
             }
             catch( Exception e )

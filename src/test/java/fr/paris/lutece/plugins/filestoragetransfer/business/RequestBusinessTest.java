@@ -38,6 +38,13 @@ import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferR
 import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferRequestHome;
 import fr.paris.lutece.test.LuteceTestCase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import org.junit.jupiter.api.Test;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -55,6 +62,7 @@ public class RequestBusinessTest extends LuteceTestCase
     /**
      * test Request
      */
+    @Test
     public void testBusiness( )
     {
         // Initialize an object
@@ -63,9 +71,14 @@ public class RequestBusinessTest extends LuteceTestCase
         request.setSourceFileserviceproviderName( SOURCEFILESERVICEPROVIDERNAME1 );
         request.setTargetFileserviceproviderName( TARGETFILESERVICEPROVIDERNAME1 );
         request.setRequestStatus( FileStorageTransferRequestStatus.STATUS_TODO );
+        request.setExecutionTime( Timestamp.from( Instant.now( ) ) );
+        request.setCreationTime( Timestamp.from( Instant.now( ) ) );
+
+        int nTodoBefore = FileStorageTransferRequestHome.countByStatus( ).getOrDefault( FileStorageTransferRequestStatus.STATUS_TODO.getValue( ), 0 );
 
         // Create test
         FileStorageTransferRequestHome.create( request );
+        assertEquals( nTodoBefore + 1, FileStorageTransferRequestHome.countByStatus( ).get( FileStorageTransferRequestStatus.STATUS_TODO.getValue( ) ) );
         Optional<FileStorageTransferRequest> optRequestStored = FileStorageTransferRequestHome.findByPrimaryKey( request.getId( ) );
         FileStorageTransferRequest requestStored = optRequestStored.orElse( new FileStorageTransferRequest( ) );
         assertEquals( requestStored.getSourceFileKey( ), request.getSourceFileKey( ) );

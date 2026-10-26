@@ -1,79 +1,107 @@
 <@pageContainer>
 	<@pageColumn>
+		<@pageHeader title='#i18n{filestoragetransfer.view_request.title}'>
+			<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?view=manageRequests' buttonIcon='arrow-left' title='#i18n{portal.util.labelBack}' color='light' class='me-1' />
+			<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?view=confirmResetFileRequestStatus&amp;id=${request.id}' title='#i18n{filestoragetransfer.modify_request.labelResetRequestStatus}' buttonIcon='refresh' color='warning' class='me-1' hideTitle=['xs','sm'] />
+			<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?view=confirmPlayFileTransferRequest&amp;id=${request.id}' title='#i18n{filestoragetransfer.modify_request.labelPlayFileTransferRequest}' buttonIcon='player-play' color='success' class='me-1' hideTitle=['xs','sm'] />
+			<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?view=modifyRequest&amp;id=${request.id}' title='#i18n{filestoragetransfer.modify_request.labelButton}' buttonIcon='edit' class='me-1' hideTitle=['xs','sm'] />
+			<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?view=confirmRemoveRequest&amp;id=${request.id}' title='#i18n{portal.util.labelDelete}' buttonIcon='trash' color='danger' hideTitle=['xs','sm'] />
+		</@pageHeader>
+		<@messages errors=errors![] />
+		<@box>
+			<@boxHeader title='#i18n{filestoragetransfer.attachment.title}' />
+			<@boxBody>
+				<#if file_info.readable>
+					<@row>
+						<@columns md=3>
+							<@p class='fw-bold mb-1'>#i18n{filestoragetransfer.attachment.name}</@p>
+							<@p>${file_info.name!}</@p>
+						</@columns>
+						<@columns md=2>
+							<@p class='fw-bold mb-1'>#i18n{filestoragetransfer.attachment.size}</@p>
+							<@p>
+								<#if file_info.size lt 1024>${file_info.size} #i18n{filestoragetransfer.attachment.unitBytes}
+								<#elseif file_info.size lt 1048576>${(file_info.size / 1024)?string('0.#')} #i18n{filestoragetransfer.attachment.unitKilobytes}
+								<#else>${(file_info.size / 1048576)?string('0.#')} #i18n{filestoragetransfer.attachment.unitMegabytes}</#if>
+							</@p>
+						</@columns>
+						<@columns md=3>
+							<@p class='fw-bold mb-1'>#i18n{filestoragetransfer.attachment.mimeType}</@p>
+							<@p>${file_info.mimeType!}</@p>
+						</@columns>
+						<@columns md=4>
+							<@p class='fw-bold mb-1'>#i18n{filestoragetransfer.attachment.location}</@p>
+							<@p>${provider_labels[file_info.fileserviceproviderName]!file_info.fileserviceproviderName!} (${file_info.fileserviceproviderName!}) &ndash; ${file_info.fileKey!}</@p>
+						</@columns>
+					</@row>
+				<#else>
+					<@alert color='warning' title='#i18n{filestoragetransfer.attachment.notFound}' />
+					<@p>${provider_labels[file_info.fileserviceproviderName]!file_info.fileserviceproviderName!} (${file_info.fileserviceproviderName!}) &ndash; ${file_info.fileKey!}</@p>
+				</#if>
+				<#if file_info.readable>
+					<@aButton href=file_info.downloadUrl title='#i18n{filestoragetransfer.attachment.download}' buttonIcon='download' color='primary' class='me-1' />
+				</#if>
+				<#if resource_link??>
+					<@aButton href=resource_link.url title='#i18n{filestoragetransfer.attachment.viewResource}' buttonIcon='external-link' color='light' />
+					<@p class='text-muted small mt-2 mb-0'>${resource_link.label}</@p>
+				</#if>
+			</@boxBody>
+		</@box>
 		<@row>
 			<@columns sm=12 xl=4>
-				<@box>
-					<@boxHeader title='#i18n{filestoragetransfer.view_request.title}' />
-					<@boxBody>
-						<@tform class="form-horizontal" method="get" name="view" >
-								<@messages errors=errors />
-								<@input type="hidden" id="id" name="id" value="${request.id}"/>
-
-								<@formGroup labelFor='old_file_key' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileKey}' mandatory=true>
-									<@input type='text' readonly=true id='old_file_key' name='old_file_key'  maxlength=255 value='${request.sourceFileKey!\'\'}' tabIndex='0' />
-								</@formGroup>
-								<@formGroup rows=2 labelFor='source_fileserviceprovider_name' labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileserviceproviderName}' mandatory=true>
-									<@input type='text' readonly=true id='source_fileserviceprovider_name' name='source_fileserviceprovider_name'  maxlength=255 value='${request.sourceFileserviceproviderName!\'\'}' tabIndex='1' />
-								</@formGroup>
-								<@formGroup rows=2 labelFor='target_fileserviceprovider_name' labelKey='#i18n{filestoragetransfer.modify_request.labelTargetFileserviceproviderName}' mandatory=true>
-									<@input type='text' readonly=true id='target_fileserviceprovider_name' name='target_fileserviceprovider_name' maxlength=255 value='${request.targetFileserviceproviderName!\'\'}' tabIndex='2' />
-								</@formGroup>
-								<@formGroup rows=2 labelFor='request_status' labelKey='#i18n{filestoragetransfer.modify_request.labelRequestStatus}' mandatory=true>
-									<div>
-										<@tag color='${request.requestStatus.color}'>${i18n( request.requestStatus.code )}</@tag>
-									</div>
-								</@formGroup>
-								<@formGroup rows=2 labelFor='request_status' labelKey='#i18n{filestoragetransfer.modify_request.labelRetryCount}' mandatory=true>
-									<@input type='text' readonly=true id='retry_count' name='retry_count' maxlength=255 value='${request.retryCount!\'\'}' tabIndex='4' />
-								</@formGroup>
-								<@formGroup rows=2 labelFor='request_status' labelKey='#i18n{filestoragetransfer.modify_request.labelCreationTime}' mandatory=true>
-									<@input type='text' readonly=true id='creation_time' name='creation_time' maxlength=255 value='${request.creationTime!\'\'}' tabIndex='5' />
-								</@formGroup>
-								<@formGroup rows=2 labelFor='request_status' labelKey='#i18n{filestoragetransfer.modify_request.labelExecutionTime}' mandatory=true>
-									<@input type='text' readonly=true id='execution_time' name='execution_time' maxlength=255 value='${request.executionTime!\'\'}' tabIndex='6' />
-								</@formGroup>
-								<@formGroup rows=2 labelFor='request_context' labelKey='#i18n{filestoragetransfer.modify_request.labelRequestContext}' mandatory=true>
-									<@input type='text' readonly=true id='request_context' name='request_context' maxlength=255 value='${request.requestContext!\'\'}' tabIndex='7' />
-								</@formGroup>
-						</@tform>
-						<div>
-							<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?action=resetFileRequestStatus&id=${request.id}' title='#i18n{filestoragetransfer.modify_request.labelResetRequestStatus}' buttonIcon='times' hideTitle=['xs','sm'] />
-							<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?action=playFileTransferRequest&id=${request.id}' title='#i18n{filestoragetransfer.modify_request.labelPlayFileTransferRequest}' buttonIcon='play' hideTitle=['xs','sm'] />
-						</div>
-					</@boxBody>
-					<@boxFooter>
-						<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp' title='#i18n{portal.util.labelPrevious}' buttonIcon='arrow-left'hideTitle=['xs','sm'] color='secondary'  />
-						<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?view=modifyRequest&id=${request.id}' hideTitle=['xs','sm'] buttonIcon='edit' title='#i18n{filestoragetransfer.modify_request.labelButton}' hideTitle=['xs','sm'] />
-						<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?action=confirmRemoveRequest&id=${request.id}' title='#i18n{portal.util.labelDelete}' buttonIcon='trash' hideTitle=['all'] color='btn-danger' hideTitle=['xs','sm'] />
-					</@boxFooter>
-				</@box>
+				<@tform name='view_request' method='get' boxed=true>
+					<@formGroup labelFor='source_file_key' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileKey}'>
+						<@input type='text' readonly=true id='source_file_key' name='source_file_key' value='${request.sourceFileKey!}' />
+					</@formGroup>
+					<@formGroup labelFor='source_fileserviceprovider_name' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileserviceproviderName}'>
+						<@input type='text' readonly=true id='source_fileserviceprovider_name' name='source_fileserviceprovider_name' value='${provider_labels[request.sourceFileserviceproviderName]!request.sourceFileserviceproviderName!} (${request.sourceFileserviceproviderName!})' />
+					</@formGroup>
+					<@formGroup labelFor='target_fileserviceprovider_name' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelTargetFileserviceproviderName}'>
+						<@input type='text' readonly=true id='target_fileserviceprovider_name' name='target_fileserviceprovider_name' value='${provider_labels[request.targetFileserviceproviderName]!request.targetFileserviceproviderName!} (${request.targetFileserviceproviderName!})' />
+					</@formGroup>
+					<@formGroup rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelRequestStatus}'>
+						<@tag color=request.requestStatus.color>${i18n( request.requestStatus.code )}</@tag>
+					</@formGroup>
+					<@formGroup labelFor='retry_count' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelRetryCount}'>
+						<@input type='text' readonly=true id='retry_count' name='retry_count' value='${request.retryCount!}' />
+					</@formGroup>
+					<@formGroup labelFor='creation_time' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelCreationTime}'>
+						<@input type='text' readonly=true id='creation_time' name='creation_time' value='${request.creationTime!}' />
+					</@formGroup>
+					<@formGroup labelFor='execution_time' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelExecutionTime}'>
+						<@input type='text' readonly=true id='execution_time' name='execution_time' value='${request.executionTime!}' />
+					</@formGroup>
+					<@formGroup labelFor='request_context' rows=2 labelKey='#i18n{filestoragetransfer.modify_request.labelRequestContext}'>
+						<@input type='text' readonly=true id='request_context' name='request_context' value='${request.requestContext!}' />
+					</@formGroup>
+				</@tform>
 			</@columns>
 			<@columns sm=12 xl=8>
-				<@table>
-				<tr>
-					<th>#i18n{filestoragetransfer.manage_errors.columnIdRequest}</th>
-					<th>#i18n{filestoragetransfer.manage_errors.columnErrorCode}</th>
-					<th>#i18n{filestoragetransfer.manage_errors.columnErrorMessage}</th>
-					<th>#i18n{portal.util.labelActions}</th>
-				</tr>
-				<@tableHeadBodySeparator />
-				<#list error_list as error >
-				<tr>
-					<td>
-						${error.idRequest}
-					</td>
-					<td>
-						${error.code}
-					</td>
-					<td>
-						${error.errorMessage}
-					</td>
-					<td>
-						<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageErrors.jsp?view=viewError&id=${error.id}' title='#i18n{portal.util.labelView}' hideTitle=['all'] buttonIcon='eye' />
-					</td>
-				</tr>
-				</#list>
-				</@table>
+				<#if error_list?has_content>
+					<@table headBody=true>
+						<@tr>
+							<@th>#i18n{filestoragetransfer.manage_errors.columnIdRequest}</@th>
+							<@th>#i18n{filestoragetransfer.manage_errors.columnErrorCode}</@th>
+							<@th>#i18n{filestoragetransfer.manage_errors.columnErrorMessage}</@th>
+							<@th>#i18n{portal.util.labelActions}</@th>
+						</@tr>
+						<@tableHeadBodySeparator />
+						<#list error_list as error>
+						<@tr>
+							<@td>${error.idRequest}</@td>
+							<@td>${error.code}</@td>
+							<@td>${error.errorMessage!}</@td>
+							<@td>
+								<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageErrors.jsp?view=viewError&amp;id=${error.id}' title='#i18n{portal.util.labelView}' hideTitle=['all'] buttonIcon='eye' color='light' />
+							</@td>
+						</@tr>
+						</#list>
+					</@table>
+				<#else>
+					<@card>
+						<@empty title='#i18n{portal.util.labelNoItem}' subtitle='#i18n{filestoragetransfer.view_request.noError}' iconName='mood-happy' />
+					</@card>
+				</#if>
 			</@columns>
 		</@row>
 	</@pageColumn>

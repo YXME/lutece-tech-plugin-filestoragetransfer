@@ -39,6 +39,7 @@ import fr.paris.lutece.util.ReferenceList;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -158,4 +159,13 @@ public interface IFileStorageTransferRequestDAO
      * @return The list which contains the id of all the request objects
      */
     List<Integer> selectIdRequestsListByStatus( Plugin _plugin, String RequestStatus );
+
+    /**
+     * Counts the requests of each status
+     *
+     * @param plugin
+     *            the Plugin
+     * @return the number of requests by status value; a status without request is absent
+     */
+    Map<String, Integer> selectCountByStatus( Plugin plugin );
 }

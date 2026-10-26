@@ -1,38 +1,30 @@
-
-<@box>
-    <@boxHeader title='#i18n{filestoragetransfer.manage_errors.title}'>
-    <@paginationAdmin paginator=paginator combo=1 />
-	</@boxHeader>
-	<@boxBody>    
-        <@messages infos=infos />
-        <div class="clearfix"></div>
-        <@table>
-            <tr>
-                <th>#i18n{filestoragetransfer.manage_errors.columnIdRequest}</th>
-                <th>#i18n{filestoragetransfer.manage_errors.columnErrorCode}</th>
-                <th>#i18n{filestoragetransfer.manage_errors.columnErrorMessage}</th>
-                <th>#i18n{portal.util.labelActions}</th>
-            </tr>
-            <@tableHeadBodySeparator />
-            <#list error_list as error >
-            <tr>
-                <td>
-                    ${error.idRequest}
-                </td>
-                <td>
-                    ${error.code}
-                </td>
-                <td>
-                    ${error.errorMessage}
-                </td>
-                <td>
-                    <@aButton href='jsp/admin/plugins/filestoragetransfer/ManageErrors.jsp?view=viewError&id=${error.id}' title='#i18n{portal.util.labelView}' hideTitle=['all'] buttonIcon='eye' />
-                </td>
-            </tr>
-            </#list>
-        </@table>
-
-        <@paginationAdmin paginator=paginator />
-
-  </@boxBody>
-</@box>
+<@pageContainer>
+	<@pageColumn>
+		<@pageHeader title='#i18n{filestoragetransfer.manage_errors.title}' />
+		<@messages infos=infos![] errors=errors![] warnings=warnings![] />
+		<#if error_list?has_content>
+			<@table headBody=true>
+				<@tr>
+					<@th>#i18n{filestoragetransfer.manage_errors.columnIdRequest}</@th>
+					<@th>#i18n{filestoragetransfer.manage_errors.columnErrorCode}</@th>
+					<@th>#i18n{filestoragetransfer.manage_errors.columnErrorMessage}</@th>
+					<@th>#i18n{portal.util.labelActions}</@th>
+				</@tr>
+				<@tableHeadBodySeparator />
+				<#list error_list as error>
+				<@tr>
+					<@td>${error.idRequest}</@td>
+					<@td>${error.code}</@td>
+					<@td>${error.errorMessage!}</@td>
+					<@td>
+						<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageErrors.jsp?view=viewError&amp;id=${error.id}' title='#i18n{portal.util.labelView}' hideTitle=['all'] buttonIcon='eye' color='light' />
+					</@td>
+				</@tr>
+				</#list>
+			</@table>
+			<@paginationAdmin paginator=paginator combo=1 />
+		<#else>
+			<@empty title='#i18n{portal.util.labelNoItem}' subtitle='#i18n{filestoragetransfer.manage_errors.noError}' iconName='mood-happy' />
+		</#if>
+	</@pageColumn>
+</@pageContainer>

@@ -34,6 +34,8 @@
 
 package fr.paris.lutece.plugins.filestoragetransfer.business;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.util.ReferenceList;
 import fr.paris.lutece.util.sql.DAOUtil;
@@ -46,6 +48,7 @@ import java.util.Optional;
 /**
  * This class provides Data Access methods for Error objects
  */
+@ApplicationScoped
 public final class FileStorageTransferErrorDAO implements IFileStorageTransferErrorDAO
 {
     // Constants
@@ -132,6 +135,7 @@ public final class FileStorageTransferErrorDAO implements IFileStorageTransferEr
             daoUtil.setInt( nIndex++, error.getCode( ) );
             daoUtil.setString( nIndex++, error.getErrorMessage( ) );
             daoUtil.setString( nIndex++, error.getErrorTrace( ) );
+            daoUtil.setTimestamp( nIndex++, error.getExecutionTime( ) );
             daoUtil.setInt( nIndex, error.getId( ) );
 
             daoUtil.executeUpdate( );
@@ -231,9 +235,6 @@ public final class FileStorageTransferErrorDAO implements IFileStorageTransferEr
                 {
                     errorList.add( loadFromDaoUtil( daoUtil ) );
                 }
-
-                daoUtil.free( );
-
             }
         }
         return errorList;

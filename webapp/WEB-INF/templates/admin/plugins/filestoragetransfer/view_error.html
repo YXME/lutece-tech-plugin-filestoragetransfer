@@ -1,22 +1,22 @@
-<@box>
-	<@boxHeader title='#i18n{filestoragetransfer.view_error.title}' />
-	<@boxBody>
-    <@tform class="form-horizontal" method="get" name="view" >
-			<@messages errors=errors />
-			<@input type="hidden" id="id" name="id" value="${error.id}"/>
-			
-			<@formGroup labelFor='id_request' labelKey='#i18n{filestoragetransfer.view_error.labelIdRequest}' mandatory=true>
-				<@input readyonly=true type='text' id='id_request' name='id_request'  value='${error.idRequest!\'\'}' tabIndex='0' />
+<@pageContainer>
+	<@pageColumn>
+		<@pageHeader title='#i18n{filestoragetransfer.view_error.title}'>
+			<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageErrors.jsp?view=manageErrors' buttonIcon='arrow-left' title='#i18n{portal.util.labelBack}' color='light' />
+		</@pageHeader>
+		<@messages errors=errors![] />
+		<@tform name='view_error' method='get' boxed=true>
+			<@formGroup labelFor='id_request' labelKey='#i18n{filestoragetransfer.view_error.labelIdRequest}'>
+				<@input readonly=true type='text' id='id_request' name='id_request' value='${error.idRequest!}' />
 			</@formGroup>
-			<@formGroup labelFor='error_message' labelKey='#i18n{filestoragetransfer.view_error.labelExecutionTime}' mandatory=true>
-				<@input readyonly=true type='text' id='execution_time' name='execution_time'  value='${error.executionTime!\'\'}' tabIndex='1' />
+			<@formGroup labelFor='execution_time' labelKey='#i18n{filestoragetransfer.view_error.labelExecutionTime}'>
+				<@input readonly=true type='text' id='execution_time' name='execution_time' value='${error.executionTime!}' />
 			</@formGroup>
-			<@formGroup labelFor='error_message' labelKey='#i18n{filestoragetransfer.view_error.labelErrorMessage}' mandatory=true>
-				<@input readyonly=true type='text' id='error_message' name='error_message'  value='${error.errorMessage!\'\'}' tabIndex='2' />
+			<@formGroup labelFor='error_message' labelKey='#i18n{filestoragetransfer.view_error.labelErrorMessage}'>
+				<@input readonly=true type='text' id='error_message' name='error_message' value='${error.errorMessage!}' />
 			</@formGroup>
-			<@formGroup labelFor='error_message' labelKey='#i18n{filestoragetransfer.view_error.labelErrorTrace}' mandatory=true>
-				<@input readyonly=true type='textarea' id='error_trace' name='error_trace'  value='${error.errorTrace!\'\'}' tabIndex='3' />
+			<@formGroup labelFor='error_trace' labelKey='#i18n{filestoragetransfer.view_error.labelErrorTrace}'>
+				<@input readonly=true type='textarea' id='error_trace' name='error_trace' rows=12 value='${error.errorTrace!}' />
 			</@formGroup>
-    </@tform>
-	</@boxBody>
-</@box>
+		</@tform>
+	</@pageColumn>
+</@pageContainer>

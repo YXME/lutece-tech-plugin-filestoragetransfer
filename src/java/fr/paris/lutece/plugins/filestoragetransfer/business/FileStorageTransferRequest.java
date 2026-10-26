@@ -33,9 +33,9 @@
  */
 package fr.paris.lutece.plugins.filestoragetransfer.business;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.Instant;

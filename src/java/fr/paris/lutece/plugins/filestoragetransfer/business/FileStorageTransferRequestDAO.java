@@ -34,18 +34,23 @@
 
 package fr.paris.lutece.plugins.filestoragetransfer.business;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.util.ReferenceList;
 import fr.paris.lutece.util.sql.DAOUtil;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * This class provides Data Access methods for Request objects
  */
+@ApplicationScoped
 public final class FileStorageTransferRequestDAO implements IFileStorageTransferRequestDAO
 {
     // Constants
@@ -61,6 +66,7 @@ public final class FileStorageTransferRequestDAO implements IFileStorageTransfer
 
     private static final String SQL_QUERY_SELECT_BY_STATUS = SQL_QUERY_SELECTALL + " WHERE request_status = ?";
     private static final String SQL_QUERY_SELECTALL_ID_BY_STATUS = SQL_QUERY_SELECTALL_ID + " WHERE request_status = ?";
+    private static final String SQL_QUERY_COUNT_BY_STATUS = "SELECT request_status, COUNT(*) FROM filestoragetransfer_request GROUP BY request_status";
 
     private static final String SQL_FILTER_SELECT_TIMESTAMP_BEFORE = " AND execution_time < ?";
     private static final String SQL_FILTER_ORDER_BY_TIMESTAMP = " ORDER BY execution_time ASC";
@@ -248,9 +254,6 @@ public final class FileStorageTransferRequestDAO implements IFileStorageTransfer
                 {
                     requestList.add( loadFromDaoUtil( daoUtil ) );
                 }
-
-                daoUtil.free( );
-
             }
         }
         return requestList;
@@ -294,9 +297,6 @@ public final class FileStorageTransferRequestDAO implements IFileStorageTransfer
             {
                 requestList.add( loadFromDaoUtil( daoUtil ) );
             }
-
-            daoUtil.free( );
-
         }
         return requestList;
 
@@ -329,12 +329,30 @@ public final class FileStorageTransferRequestDAO implements IFileStorageTransfer
             {
                 requestList.add( loadFromDaoUtil( daoUtil ) );
             }
-
-            daoUtil.free( );
-
         }
         return requestList;
 
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public Map<String, Integer> selectCountByStatus( Plugin plugin )
+    {
+        Map<String, Integer> mapCountByStatus = new HashMap<>( );
+
+        try ( DAOUtil daoUtil = new DAOUtil( SQL_QUERY_COUNT_BY_STATUS, plugin ) )
+        {
+            daoUtil.executeQuery( );
+
+            while ( daoUtil.next( ) )
+            {
+                mapCountByStatus.put( daoUtil.getString( 1 ), daoUtil.getInt( 2 ) );
+            }
+        }
+
+        return mapCountByStatus;
     }
 
     private FileStorageTransferRequest loadFromDaoUtil( DAOUtil daoUtil )

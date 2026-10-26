@@ -1,9 +1,9 @@
-<jsp:useBean id="managetransfererrorError" scope="session" class="fr.paris.lutece.plugins.filestoragetransfer.web.FileStorageTransferErrorJspBean" />
-<% String strContent = managetransfererrorError.processController ( request , response ); %>
-
 <%@ page errorPage="../../ErrorPage.jsp" %>
+
+${ pageContext.setAttribute( 'strContent', fileStorageTransferErrorJspBean.processController( pageContext.request , pageContext.response ) ) }
+
 <jsp:include page="../../AdminHeader.jsp" />
 
-<%= strContent %>
+${ pageContext.getAttribute( 'strContent' ) }
 
 <%@ include file="../../AdminFooter.jsp" %>

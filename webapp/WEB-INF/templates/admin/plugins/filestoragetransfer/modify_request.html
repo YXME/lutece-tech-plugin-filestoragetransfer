@@ -1,43 +1,35 @@
-<@box>
-	<@boxHeader title='#i18n{filestoragetransfer.modify_request.title}' />
-	<@boxBody>
-		<@tform class="form-horizontal" method="post" name="modify_request" action="jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp" >
-				<@messages errors=errors />
-				<@input type="hidden" id="id" name="id" value="${request.id}"/>
-				<@input type="hidden" value="${token}" name="token" />
-				
-				<@formGroup labelFor='old_file_key' labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileKey}' mandatory=true>
-					<@input type='text' id='old_file_key' name='old_file_key'  maxlength=255 value='${request.sourceFileKey!\'\'}' tabIndex='0' />
-				</@formGroup>
-				<@formGroup labelFor='request_context' labelKey='#i18n{filestoragetransfer.modify_request.labelRequestContext}' mandatory=true>
-					<@input type='text' id='request_context' name='request_context' maxlength=255 value='${request.requestContext!\'\'}' tabIndex='1' />
-				</@formGroup>
-				<@formGroup labelFor='request_context' labelKey='#i18n{filestoragetransfer.modify_request.labelContactMail}' mandatory=true>
-					<@input type='text' id='contact_mail' name='contact_mail' maxlength=255 value='${request.contactMail!\'\'}' tabIndex='2' />
-				</@formGroup>
-				<@formGroup labelFor='source_fileserviceprovider_name' labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileserviceproviderName}' mandatory=true>
-					<@select name='source_fileserviceprovider_name'>
-						<#list fileservice_list as fileservice>
-							<#if fileservice == request.sourceFileserviceproviderName>
-								<@option value=fileservice label=fileservice selected=true />
-							<#else>
-								<@option value=fileservice label=fileservice />
-							</#if>
-						</#list>
-					</@select>
-				</@formGroup>
-				<@formGroup labelFor='target_fileserviceprovider_name' labelKey='#i18n{filestoragetransfer.modify_request.labelTargetFileserviceproviderName}' mandatory=true>
-					<@select name='target_fileserviceprovider_name'>
-						<#list fileservice_list as fileservice>
-							<#if fileservice == request.targetFileserviceproviderName>
-								<@option value=fileservice label=fileservice selected=true />
-							<#else>
-								<@option value=fileservice label=fileservice />
-							</#if>
-						</#list>
-					</@select>
-				</@formGroup>
-			<@actionButtons button1Name="action_modifyRequest" button2Name="view_manageRequest"/>
+<@pageContainer>
+	<@pageColumn>
+		<@pageHeader title='#i18n{filestoragetransfer.modify_request.title}'>
+			<@aButton href='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp?view=manageRequests' buttonIcon='arrow-left' title='#i18n{portal.util.labelBack}' color='light' />
+		</@pageHeader>
+		<@messages errors=errors![] />
+		<@tform name='modify_request' action='jsp/admin/plugins/filestoragetransfer/ManageRequests.jsp' boxed=true>
+			<@input type='hidden' name='id' value='${request.id}' />
+			<@formGroup labelFor='source_file_key' labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileKey}' helpKey='#i18n{filestoragetransfer.modify_request.labelSourceFileKey.help}' mandatory=true>
+				<@input type='text' id='source_file_key' name='source_file_key' maxlength=255 value='${request.sourceFileKey!}' mandatory=true />
+			</@formGroup>
+			<@formGroup labelFor='request_context' labelKey='#i18n{filestoragetransfer.modify_request.labelRequestContext}'>
+				<@input type='text' id='request_context' name='request_context' maxlength=255 value='${request.requestContext!}' />
+			</@formGroup>
+			<@formGroup labelFor='contact_mail' labelKey='#i18n{filestoragetransfer.modify_request.labelContactMail}'>
+				<@input type='email' id='contact_mail' name='contact_mail' maxlength=255 value='${request.contactMail!}' />
+			</@formGroup>
+			<@formGroup labelFor='source_fileserviceprovider_name' labelKey='#i18n{filestoragetransfer.modify_request.labelSourceFileserviceproviderName}' helpKey='#i18n{filestoragetransfer.modify_request.labelSourceFileserviceproviderName.help}' mandatory=true>
+				<@select id='source_fileserviceprovider_name' name='source_fileserviceprovider_name' mandatory=true>
+					<#list fileservice_list as provider>
+						<@option value=provider.name label=provider.label selected=(provider.name == request.sourceFileserviceproviderName!'') />
+					</#list>
+				</@select>
+			</@formGroup>
+			<@formGroup labelFor='target_fileserviceprovider_name' labelKey='#i18n{filestoragetransfer.modify_request.labelTargetFileserviceproviderName}' helpKey='#i18n{filestoragetransfer.modify_request.labelTargetFileserviceproviderName.help}' mandatory=true>
+				<@select id='target_fileserviceprovider_name' name='target_fileserviceprovider_name' mandatory=true>
+					<#list fileservice_list as provider>
+						<@option value=provider.name label=provider.label selected=(provider.name == request.targetFileserviceproviderName!'') />
+					</#list>
+				</@select>
+			</@formGroup>
+			<@actionButtons button1Name='action_modifyRequest' button2Name='view_manageRequests' />
 		</@tform>
-	</@boxBody>
-</@box>
+	</@pageColumn>
+</@pageContainer>

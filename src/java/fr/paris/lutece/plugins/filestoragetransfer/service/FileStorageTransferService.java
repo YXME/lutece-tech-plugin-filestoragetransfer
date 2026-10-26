@@ -40,6 +40,10 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferRequest;
 import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferError;
@@ -50,37 +54,64 @@ import fr.paris.lutece.portal.business.file.File;
 import fr.paris.lutece.portal.service.file.FileService;
 import fr.paris.lutece.portal.service.file.FileServiceException;
 import fr.paris.lutece.portal.service.file.IFileStoreServiceProvider;
-import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.util.html.HtmlTemplate;
 import fr.paris.lutece.portal.service.mail.MailService;
 import fr.paris.lutece.portal.service.template.AppTemplateService;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
+@ApplicationScoped
 public class FileStorageTransferService
 {
-    private static int _nRetryDelay = AppPropertiesService.getPropertyInt( "filestoragetransfer.RetryDelay", 3600 );
-    private static int _nRetryLimit = AppPropertiesService.getPropertyInt( "filestoragetransfer.RetryLimit", 0 );
-    private static boolean _bNotificationsEnabled = AppPropertiesService.getPropertyBoolean( "filestoragetransfer.NotificationsEnabled", false );
-
-    private static String _sMailSubject = AppPropertiesService.getProperty( "filestoragetransfer.MailSubject" );
-    private static String _sMailSender = AppPropertiesService.getProperty( "filestoragetransfer.MailSender" );
-    private static String _sMailRecipient = AppPropertiesService.getProperty( "filestoragetransfer.MailRecipient" );
-    private static String _sApplicationCode = AppPropertiesService.getProperty( "lutece.code" );
-    private static String _sSiteName = AppPropertiesService.getProperty( "lutece.name" );
-
-    private static String TEMPLATE_MAIL = "admin/plugins/filestoragetransfer/mail/mail_filestoragetransfer.html";
+    private static final String TEMPLATE_MAIL = "admin/plugins/filestoragetransfer/mail/mail_filestoragetransfer.html";
 
     private static final String MARK_REQUEST = "request";
     private static final String MARK_ERROR = "error";
 
-    private static StringWriter sw = new StringWriter( );
-    private static PrintWriter pw = new PrintWriter( sw );
+    @Inject
+    @ConfigProperty( name = "filestoragetransfer.RetryDelay", defaultValue = "3600" )
+    private int _nRetryDelay;
 
-    public static void TransferFileToTargetFileService( FileStorageTransferRequest request )
+    @Inject
+    @ConfigProperty( name = "filestoragetransfer.RetryLimit", defaultValue = "0" )
+    private int _nRetryLimit;
+
+    @Inject
+    @ConfigProperty( name = "filestoragetransfer.NotificationsEnabled", defaultValue = "false" )
+    private boolean _bNotificationsEnabled;
+
+    @Inject
+    @ConfigProperty( name = "filestoragetransfer.MailSubject" )
+    private Optional<String> _sMailSubject;
+
+    @Inject
+    @ConfigProperty( name = "filestoragetransfer.MailSender" )
+    private Optional<String> _sMailSender;
+
+    @Inject
+    @ConfigProperty( name = "filestoragetransfer.MailRecipient" )
+    private Optional<String> _sMailRecipient;
+
+    @Inject
+    @ConfigProperty( name = "lutece.code" )
+    private Optional<String> _sApplicationCode;
+
+    @Inject
+    @ConfigProperty( name = "lutece.name" )
+    private Optional<String> _sSiteName;
+
+    @Inject
+    private FileService _fileService;
+
+    @Inject
+    private FileStorageTransferNotifierService _fileStorageTransferNotifierService;
+
+    public void TransferFileToTargetFileService( FileStorageTransferRequest request )
     {
         try
         {
-            IFileStoreServiceProvider sourceFileStoreService = FileService.getInstance( ).getFileStoreServiceProvider( request.getSourceFileserviceproviderName( ) );
-            IFileStoreServiceProvider targetFileStoreService = FileService.getInstance( ).getFileStoreServiceProvider( request.getTargetFileserviceproviderName( ) );
+            IFileStoreServiceProvider sourceFileStoreService = _fileService.getFileStoreServiceProvider( request.getSourceFileserviceproviderName( ) );
+            IFileStoreServiceProvider targetFileStoreService = _fileService.getFileStoreServiceProvider( request.getTargetFileserviceproviderName( ) );
 
             String targetFileKey = sendFileToTargetFileService( request.getSourceFileKey( ), sourceFileStoreService,
                     targetFileStoreService );
@@ -88,8 +119,7 @@ public class FileStorageTransferService
             request.setTargetFileKey( targetFileKey );
             FileStorageTransferRequestHome.update( request );
 
-            FileStorageTransferNotifierService _fileSwitcher = FileStorageTransferNotifierService.instance( );
-            _fileSwitcher.notifyFileTransferListeners( request );
+            _fileStorageTransferNotifierService.notifyFileTransferListeners( request );
 
             deleteFileFromSourceFileService( request.getSourceFileKey( ), sourceFileStoreService );
 
@@ -111,7 +141,7 @@ public class FileStorageTransferService
         }
     }
 
-    private static String sendFileToTargetFileService( String strSourceFileKey, IFileStoreServiceProvider sourceFileStoreService, IFileStoreServiceProvider targetFileStoreService )
+    private String sendFileToTargetFileService( String strSourceFileKey, IFileStoreServiceProvider sourceFileStoreService, IFileStoreServiceProvider targetFileStoreService )
             throws FileServiceException
     {
         File fileToTransfer = sourceFileStoreService.getFile( strSourceFileKey );
@@ -126,7 +156,7 @@ public class FileStorageTransferService
 
     }
 
-    private static void deleteFileFromSourceFileService( String strSourceFileKey, IFileStoreServiceProvider sourceFileStoreService ) throws FileServiceException
+    private void deleteFileFromSourceFileService( String strSourceFileKey, IFileStoreServiceProvider sourceFileStoreService ) throws FileServiceException
     {
         if ( sourceFileStoreService == null )
         {
@@ -136,7 +166,7 @@ public class FileStorageTransferService
         sourceFileStoreService.delete( strSourceFileKey );
     }
 
-    private static void deleteFileFromTargetFileService( String strTargetFileKey, IFileStoreServiceProvider targetFileStoreService ) throws FileServiceException
+    private void deleteFileFromTargetFileService( String strTargetFileKey, IFileStoreServiceProvider targetFileStoreService ) throws FileServiceException
     {
         if ( targetFileStoreService == null )
         {
@@ -145,7 +175,7 @@ public class FileStorageTransferService
         targetFileStoreService.delete( strTargetFileKey );
     }
 
-    private static void HandleException( FileStorageTransferRequest request, Exception e, int ResponseCode )
+    private void HandleException( FileStorageTransferRequest request, Exception e, int ResponseCode )
     {
         request.upRetryCount( );
 
@@ -161,7 +191,8 @@ public class FileStorageTransferService
         request.setExecutionTime( Timestamp.from( Instant.now( ).plusSeconds( _nRetryDelay ) ) );
         FileStorageTransferRequestHome.update( request );
 
-        e.printStackTrace( pw );
+        StringWriter sw = new StringWriter( );
+        e.printStackTrace( new PrintWriter( sw ) );
 
         FileStorageTransferError error = new FileStorageTransferError( request.getId( ), ResponseCode, e.getMessage( ) == null ? "" : e.getMessage( ), sw.toString( ),
                 Timestamp.from( Instant.now( ) ) );
@@ -174,14 +205,15 @@ public class FileStorageTransferService
             model.put( MARK_ERROR, error );
 
             HtmlTemplate template = AppTemplateService.getTemplate( TEMPLATE_MAIL, null, model );
-            if ( request.getContactMail( ) != null )
+            String strSenderName = _sApplicationCode.orElse( "" ) + " " + _sSiteName.orElse( "" );
+            if ( StringUtils.isBlank( request.getContactMail( ) ) )
             {
-                MailService.sendMailHtml( _sMailRecipient, _sApplicationCode + " " + _sSiteName, _sMailSender, _sMailSubject, template.getHtml( ) );
+                MailService.sendMailHtml( _sMailRecipient.orElse( null ), strSenderName, _sMailSender.orElse( null ), _sMailSubject.orElse( "" ), template.getHtml( ) );
             }
             else
             {
-                MailService.sendMailHtml( request.getContactMail( ), null, _sMailRecipient, _sApplicationCode + " " + _sSiteName, _sMailSender, _sMailSubject,
-                        template.getHtml( ) );
+                MailService.sendMailHtml( request.getContactMail( ), null, _sMailRecipient.orElse( null ), strSenderName, _sMailSender.orElse( null ),
+                        _sMailSubject.orElse( "" ), template.getHtml( ) );
             }
         }
     }

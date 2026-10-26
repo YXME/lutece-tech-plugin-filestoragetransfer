@@ -6,3 +6,9 @@
 /nb-configuration.xml
 webapp/WEB-INF/conf/config.properties
 /bin/
+target/
+logs/
+java.io.tmpdir/
+.migration/
+*.log
+e2e/

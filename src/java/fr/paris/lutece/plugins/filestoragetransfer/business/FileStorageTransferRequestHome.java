@@ -36,11 +36,12 @@ package fr.paris.lutece.plugins.filestoragetransfer.business;
 
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.portal.service.plugin.PluginService;
-import fr.paris.lutece.portal.service.spring.SpringContextService;
+import jakarta.enterprise.inject.spi.CDI;
 import fr.paris.lutece.util.ReferenceList;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -49,7 +50,7 @@ import java.util.Optional;
 public final class FileStorageTransferRequestHome
 {
     // Static variable pointed at the DAO instance
-    private static IFileStorageTransferRequestDAO _dao = SpringContextService.getBean( "filestoragetransfer.requestDAO" );
+    private static IFileStorageTransferRequestDAO _dao = CDI.current( ).select( IFileStorageTransferRequestDAO.class ).get( );
     private static Plugin _plugin = PluginService.getPlugin( "filestoragetransfer" );
 
     /**
@@ -188,6 +189,16 @@ public final class FileStorageTransferRequestHome
     public static List<FileStorageTransferRequest> selectRequestsListByStatusAndExecutionTime( Timestamp executionTime, int limit )
     {
         return _dao.selectRequestsListToExecute( _plugin, executionTime, limit );
+    }
+
+    /**
+     * Counts the requests of each status
+     *
+     * @return the number of requests by status value; a status without request is absent
+     */
+    public static Map<String, Integer> countByStatus( )
+    {
+        return _dao.selectCountByStatus( _plugin );
     }
 
 }

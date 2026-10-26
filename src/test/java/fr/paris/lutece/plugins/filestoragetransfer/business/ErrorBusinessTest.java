@@ -38,6 +38,13 @@ import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferE
 import fr.paris.lutece.plugins.filestoragetransfer.business.FileStorageTransferErrorHome;
 import fr.paris.lutece.test.LuteceTestCase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import org.junit.jupiter.api.Test;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -45,20 +52,20 @@ import java.util.Optional;
  */
 public class ErrorBusinessTest extends LuteceTestCase
 {
-    private static final int IDREQUEST1 = 1;
-    private static final int IDREQUEST2 = 2;
     private static final String ERRORMESSAGE1 = "ErrorMessage1";
     private static final String ERRORMESSAGE2 = "ErrorMessage2";
 
     /**
      * test Error
      */
+    @Test
     public void testBusiness( )
     {
+        FileStorageTransferRequest request1 = createRequest( );
+        FileStorageTransferRequest request2 = createRequest( );
+
         // Initialize an object
-        FileStorageTransferError error = new FileStorageTransferError( );
-        error.setIdRequest( IDREQUEST1 );
-        error.setErrorMessage( ERRORMESSAGE1 );
+        FileStorageTransferError error = new FileStorageTransferError( request1.getId( ), 404, ERRORMESSAGE1, "trace", Timestamp.from( Instant.now( ) ) );
 
         // Create test
         FileStorageTransferErrorHome.create( error );
@@ -68,7 +75,7 @@ public class ErrorBusinessTest extends LuteceTestCase
         assertEquals( errorStored.getErrorMessage( ), error.getErrorMessage( ) );
 
         // Update test
-        error.setIdRequest( IDREQUEST2 );
+        error.setIdRequest( request2.getId( ) );
         error.setErrorMessage( ERRORMESSAGE2 );
         FileStorageTransferErrorHome.update( error );
         optErrorStored = FileStorageTransferErrorHome.findByPrimaryKey( error.getId( ) );
@@ -86,6 +93,27 @@ public class ErrorBusinessTest extends LuteceTestCase
         errorStored = optErrorStored.orElse( null );
         assertNull( errorStored );
 
+        FileStorageTransferRequestHome.remove( request1.getId( ) );
+        FileStorageTransferRequestHome.remove( request2.getId( ) );
+    }
+
+    /**
+     * Creates the request an error belongs to
+     *
+     * @return the request
+     */
+    private FileStorageTransferRequest createRequest( )
+    {
+        Timestamp now = Timestamp.from( Instant.now( ) );
+        FileStorageTransferRequest request = new FileStorageTransferRequest( );
+        request.setSourceFileKey( "SourceFileKey" );
+        request.setSourceFileserviceproviderName( "SourceFileserviceproviderName" );
+        request.setTargetFileserviceproviderName( "TargetFileserviceproviderName" );
+        request.setRequestStatus( FileStorageTransferRequestStatus.STATUS_ERROR );
+        request.setExecutionTime( now );
+        request.setCreationTime( now );
+
+        return FileStorageTransferRequestHome.create( request );
     }
 
 }
